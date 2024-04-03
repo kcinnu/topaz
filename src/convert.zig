@@ -24,7 +24,9 @@ pub fn convertGemtext(rd: anytype, wr: anytype, base: std.Uri) !void {
             while (idx < line.len and !isWhitespace(line[idx])) idx += 1;
             const link_url_raw = line[url_start..idx];
             while (idx < line.len and isWhitespace(line[idx])) idx += 1;
-            const comment = line[idx..];
+            var comment = line[idx..];
+
+            if (comment.len == 0) comment = link_url_raw;
 
             var urlbuf2: [opt.max_path_len * 2]u8 = undefined;
             if (toProxyPath(base, link_url_raw, &urlbuf2) catch null) |h| {
