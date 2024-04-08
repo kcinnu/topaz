@@ -2,7 +2,12 @@
     .name = "topaz",
     .version = "0.1.0",
     //.minimum_zig_version = "0.11.0",
-    .dependencies = .{},
+    .dependencies = .{
+        .clap = .{
+            .url = "git+https://github.com/Hejsil/zig-clap#8c98e6404b22aafc0184e999d8f068b81cc22fa1",
+            .hash = "122014e73fd712190e109950837b97f6143f02d7e2b6986e1db70b6f4aadb5ba6a0d",
+        },
+    },
     .paths = .{
         "build.zig",
         "build.zig.zon",

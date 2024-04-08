@@ -25,6 +25,7 @@ pub fn build(b: *std.Build) void {
     exe.linkLibC();
     exe.addIncludePath(.{ .path = "BearSSL/inc" });
     exe.linkLibrary(bearssl);
+    exe.root_module.addImport("clap", b.dependency("clap", .{}).module("clap"));
     const options = b.addOptions();
     options.addOption(usize, "max_path_len", b.option(usize, "pathLen", "maximum url path length (default: 1024)") orelse 1024);
     options.addOption(usize, "max_meta_len", b.option(usize, "metaLen", "maximum gemini meta length (default: 1024, guaranteed by the gemini spec)") orelse 1024);

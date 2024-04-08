@@ -1,4 +1,5 @@
 const std = @import("std");
+const clap = @import("clap");
 const unescape = @import("url_unescape.zig").unescape;
 const convert = @import("convert.zig");
 const opt = @import("options");
@@ -16,26 +17,36 @@ pub fn main() !void {
     var heap = std.heap.GeneralPurposeAllocator(.{}){};
     const alloc = heap.allocator();
 
-    var listen_ip = std.net.Address.initIp4(.{ 127, 0, 0, 1 }, 6969);
-    var open_conn_limit: u32 = 512;
-    blk: {
-        var args = try std.process.argsWithAllocator(alloc);
-        defer args.deinit();
-        _ = args.next() orelse break :blk;
+    const params = comptime clap.parseParamsComptime(
+        \\-h, --help          display help and exit
+        \\--listen <str>      ip to listen on (default: 127.0.0.1)
+        \\-p, --port <u16>    port to listen on (default: 6969)
+        \\--conn_lim <usize>  maximum number of open http connections (default: 512)
+    );
 
-        if (@import("builtin").os.tag == .windows) {
-            // TODO: remove this workaround once resolveIp works on windows
-            listen_ip = try std.net.Address.parseIp(args.next() orelse break :blk, listen_ip.getPort());
-        } else {
-            listen_ip = try std.net.Address.resolveIp(args.next() orelse break :blk, listen_ip.getPort());
-        }
+    var diag = clap.Diagnostic{};
+    var res = clap.parse(clap.Help, &params, clap.parsers.default, .{
+        .diagnostic = &diag,
+        .allocator = alloc,
+    }) catch |e| {
+        try diag.report(std.io.getStdErr().writer(), e);
+        return;
+    };
+    defer res.deinit();
 
-        listen_ip.setPort(try std.fmt.parseInt(u16, args.next() orelse break :blk, 0));
-
-        open_conn_limit = try std.fmt.parseInt(u32, args.next() orelse break :blk, 0);
+    if (res.args.help != 0) {
+        return clap.help(std.io.getStdErr().writer(), clap.Help, &params, .{});
     }
 
-    var socket = try listen_ip.listen(.{});
+    const addr_str = res.args.listen orelse "127.0.0.1";
+    const port = res.args.port orelse 6969;
+    const open_conn_limit = res.args.conn_lim orelse 512;
+
+    // TODO: remove this workaround once resolveIp works on windows
+    const addr_parse_fn = if (@import("builtin").os.tag == .windows) std.net.Address.parseIp else std.net.Address.resolveIp;
+    const listen_addr = try addr_parse_fn(addr_str, port);
+
+    var socket = try listen_addr.listen(.{});
     std.log.info("listening at {}", .{socket.listen_address});
     while (true) {
         const conn = socket.accept() catch |e| switch (e) {
