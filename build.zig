@@ -4,16 +4,12 @@ pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
-    const bearssl = b.addStaticLibrary(.{
-        .name = "bearssl",
-        .target = target,
-        .optimize = optimize,
-        .link_libc = true,
-    });
-    bearssl.addIncludePath(.{ .path = "BearSSL/inc" });
-    bearssl.addIncludePath(.{ .path = "BearSSL/src" });
-    bearssl.addCSourceFiles(.{ .files = &bearssl_sources, .root = .{ .path = "BearSSL/" } });
-    bearssl.defineCMacro("BR_LE_UNALIGNED", "0");
+    const options = b.addOptions();
+    options.addOption(usize, "max_path_len", b.option(usize, "pathLen", "maximum url path length (default: 1024)") orelse 1024);
+    options.addOption(usize, "max_meta_len", b.option(usize, "metaLen", "maximum gemini meta length (default: 1024, guaranteed by the gemini spec)") orelse 1024);
+    options.addOption(usize, "send_buf_len", b.option(usize, "sendBuf", "http send buffer size (default: 4096)") orelse 1 << 12);
+    options.addOption(usize, "max_line_len", b.option(usize, "lineLen", "maximum gemtext line length (default: 64Ki)") orelse 1 << 16);
+    options.addOption([]const u8, "template_dir", b.option([]const u8, "templateDir", "custom template directory to override the default (must have start.html, input.html, and style.css)") orelse "templates");
 
     const exe = b.addExecutable(.{
         .name = "topaz",
@@ -22,17 +18,10 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
-    exe.linkLibC();
+    exe.linkLibrary(compileBearssl(b, target, optimize));
     exe.addIncludePath(.{ .path = "BearSSL/inc" });
-    exe.linkLibrary(bearssl);
-    exe.root_module.addImport("clap", b.dependency("clap", .{}).module("clap"));
-    const options = b.addOptions();
-    options.addOption(usize, "max_path_len", b.option(usize, "pathLen", "maximum url path length (default: 1024)") orelse 1024);
-    options.addOption(usize, "max_meta_len", b.option(usize, "metaLen", "maximum gemini meta length (default: 1024, guaranteed by the gemini spec)") orelse 1024);
-    options.addOption(usize, "send_buf_len", b.option(usize, "sendBuf", "http send buffer size (default: 4096)") orelse 1 << 12);
-    options.addOption(usize, "max_line_len", b.option(usize, "lineLen", "maximum gemtext line length (default: 64Ki)") orelse 1 << 16);
-    options.addOption([]const u8, "template_dir", b.option([]const u8, "templateDir", "custom template directory to override the default (must have start.html, input.html, and style.css)") orelse "templates");
     exe.root_module.addOptions("options", options);
+    exe.root_module.addImport("clap", b.dependency("clap", .{}).module("clap"));
 
     b.installArtifact(exe);
     const run_cmd = b.addRunArtifact(exe);
@@ -54,6 +43,21 @@ pub fn build(b: *std.Build) void {
 
     // const test_step = b.step("test", "Run unit tests");
     // test_step.dependOn(&run_exe_unit_tests.step);
+}
+
+fn compileBearssl(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode) *std.Build.Step.Compile {
+    const bearssl = b.addStaticLibrary(.{
+        .name = "bearssl",
+        .target = target,
+        .optimize = optimize,
+        .link_libc = true,
+    });
+    bearssl.addCSourceFiles(.{ .files = &bearssl_sources, .root = .{ .path = "BearSSL/" } });
+    bearssl.addIncludePath(.{ .path = "BearSSL/inc" });
+    bearssl.addIncludePath(.{ .path = "BearSSL/src" });
+    bearssl.defineCMacro("BR_LE_UNALIGNED", "0");
+
+    return bearssl;
 }
 
 // taken from BearSSL/mk/mkrules.sh

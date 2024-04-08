@@ -17,7 +17,7 @@ pub fn main() !void {
     var heap = std.heap.GeneralPurposeAllocator(.{}){};
     const alloc = heap.allocator();
 
-    const params = comptime clap.parseParamsComptime(
+    const arg_config = comptime clap.parseParamsComptime(
         \\-h, --help          display help and exit
         \\--listen <str>      ip to listen on (default: 127.0.0.1)
         \\-p, --port <u16>    port to listen on (default: 6969)
@@ -25,22 +25,24 @@ pub fn main() !void {
     );
 
     var diag = clap.Diagnostic{};
-    var res = clap.parse(clap.Help, &params, clap.parsers.default, .{
+
+    var parse_res = clap.parse(clap.Help, &arg_config, clap.parsers.default, .{
         .diagnostic = &diag,
         .allocator = alloc,
     }) catch |e| {
         try diag.report(std.io.getStdErr().writer(), e);
         return;
     };
-    defer res.deinit();
+    defer parse_res.deinit();
+    const args = parse_res.args;
 
-    if (res.args.help != 0) {
-        return clap.help(std.io.getStdErr().writer(), clap.Help, &params, .{});
+    if (args.help != 0) {
+        return clap.help(std.io.getStdErr().writer(), clap.Help, &arg_config, .{});
     }
 
-    const addr_str = res.args.listen orelse "127.0.0.1";
-    const port = res.args.port orelse 6969;
-    const open_conn_limit = res.args.conn_lim orelse 512;
+    const addr_str = args.listen orelse "127.0.0.1";
+    const port = args.port orelse 6969;
+    const open_conn_limit = args.conn_lim orelse 512;
 
     // TODO: remove this workaround once resolveIp works on windows
     const addr_parse_fn = if (@import("builtin").os.tag == .windows) std.net.Address.parseIp else std.net.Address.resolveIp;

@@ -1,6 +1,6 @@
 oh hi uhh
 
-ive only tested this on zig 0.12.0-dev.3518 on windows
+ive only tested this on zig 0.12.0-dev.3580 on windows
 
 only has proper pages for 1x, 2x, and 3x gemini codes
 
