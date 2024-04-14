@@ -67,17 +67,15 @@ fn isWhitespace(ch: u8) bool {
 
 pub fn parseProxyPath(path: []const u8, buf: []u8) !std.Uri {
     buf[0] = '/';
-    var url = try std.Uri.parseWithoutScheme(buf[0 .. (try unescape(path, buf[1..])).len + 1]);
-    url.scheme = "gemini";
-    return url;
+    return std.Uri.parseAfterScheme("gemini", buf[0 .. (try unescape(path, buf[1..])).len + 1]);
 }
 
 pub fn toProxyPath(base: std.Uri, uri: []const u8, buf: []u8) !?[]u8 {
-    const buf1 = buf[0 .. buf.len / 2];
+    var buf1 = buf[0 .. buf.len / 2];
     const buf2 = buf[buf.len / 2 ..];
     const uri2 = try unescape(uri, buf1);
-    const nurl = std.Uri.resolve_inplace(base, uri2, buf1) catch |e| switch (e) {
-        error.OutOfMemory => return error.UriTooLong,
+    const nurl = std.Uri.resolve_inplace(base, uri2, &buf1) catch |e| switch (e) {
+        error.NoSpaceLeft => return error.UriTooLong,
         else => return e,
     };
     if (!std.mem.eql(u8, nurl.scheme, "gemini")) return null;

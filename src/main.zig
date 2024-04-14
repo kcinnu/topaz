@@ -136,10 +136,10 @@ fn handle_req(alloc: std.mem.Allocator, req: *std.http.Server.Request) !void {
     };
     std.log.info("proxying {}", .{proxy_url});
 
-    const host = proxy_url.host orelse {
+    const host = (proxy_url.host orelse {
         try req.respond("no host specified", .{ .status = .bad_request });
         return;
-    };
+    }).percent_encoded;
 
     const client_socket = std.net.tcpConnectToHost(alloc, host, 1965) catch |e| {
         if (errorInSet(std.net.TcpConnectToAddressError, e)) {
