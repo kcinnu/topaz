@@ -195,7 +195,7 @@ fn handle_req(alloc: std.mem.Allocator, req: *std.http.Server.Request) !void {
     switch (status[0]) {
         '1' => {
             var resp = req.respondStreaming(.{ .send_buffer = &send_buf });
-            try resp.writer().print(@embedFile(template_dir ++ "/input.html"), .{meta});
+            try resp.writer().print(convertTemplateToFormatStr(@embedFile(template_dir ++ "/input.html")), .{meta});
             try resp.end();
         },
         '2' => {
@@ -265,6 +265,36 @@ fn handle_req(alloc: std.mem.Allocator, req: *std.http.Server.Request) !void {
             try resp.end();
         },
     }
+}
+
+fn convertTemplateToFormatStr(str: []const u8) []const u8 {
+    var res: []const u8 = "";
+    var i = 0;
+    while (i < str.len) : (i += 1) {
+        switch (str[i]) {
+            else => |v| res = res ++ .{v},
+            '$' => {
+                if (i < str.len - 1 and str[i + 1] == '{') {
+                    res = res ++ .{'{'};
+                    i += 1;
+                } else {
+                    res = res ++ .{'$'};
+                }
+            },
+            '{' => {
+                res = res ++ "{{";
+            },
+            '}' => {
+                if (i < str.len - 1 and str[i + 1] == '$') {
+                    res = res ++ .{'}'};
+                    i += 1;
+                } else {
+                    res = res ++ "}}";
+                }
+            },
+        }
+    }
+    return res;
 }
 
 fn pipe(rd: anytype, wr: anytype, buf: []u8) !void {
