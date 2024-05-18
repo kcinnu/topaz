@@ -5,6 +5,33 @@
     <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-    <p>youre on the topaz gemini proxy, but havent chosen an url to proxy.</p>
-    <p>maybe view the <a href="/geminiprotocol.net/">official gemini page</a>? or check out the <a href="/geminispace.info/">geminispace.info search engine</a>?</p>
+    <label for="t"><h1 style="text-align: unset;">choose an url to proxy:</h1></label>
+    <input type="text" id="t"> <button id="b">go</button>
+    <h2>official gemini protocol capsule</h3>
+    <a href="/geminiprotocol.net/">geminiprotocol.net</a><br>
+    <h2>search engines</h3>
+    <a href="/geminispace.info/">geminispace.info (shutting down in 2024-06-01)</a><br>
+    <a href="/gemplex.space/">gemplex.space</a><br>
+    <a href="/kennedy.gemi.dev/">kennedy.gemi.dev</a><br>
+    <a href="/tlgs.one/">tlgs.one</a><br>
+    <h2>gemini archives</h3>
+    <a href="/kennedy.gemi.dev/archive/">delorean (wayback-like archive)</a><br>
+    <a href="/mozz.us/archive/">2020 gemini archive collection by mozz</a><br>
+    <script>
+        function fn() {
+            let str = document.getElementById("t").value;
+            if (str.startsWith("gemini:")) {
+                str = 'https:' + str.slice(7); // :(
+                const url = new URL(str);
+                document.location.pathname = `/${url.host}${url.pathname}${url.search?'?'+url.search:''}`;
+            } else {
+                document.location.pathname = str;
+            }
+        }
+        document.getElementById("b").onclick = fn;
+        document.getElementById("t").onkeydown = e => {
+            if (e.key !== "Enter") return;
+            fn();
+        };
+    </script>
 </body>

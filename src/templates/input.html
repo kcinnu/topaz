@@ -10,18 +10,16 @@
         <p>your browser doesnt support javascript. you will need to manually put your input into the url</p>
         <p>example: http://example.com/foo/bar  -&gt;  http://example.com/foo/bar?your_input_here</p>
     </noscript>
-    <div style="display: none;" id="d">
+    <span>
         <input type="text" id="t">
         <button id="b">submit</button>
-    </div>
+    </span>
     <script>
-        document.getElementById("d").style.display = "";
         function fn() {
             document.location.search = document.getElementById("t").value;
         }
         document.getElementById("b").onclick = fn;
         document.getElementById("t").onkeydown = e => {
-            // console.log(e);
             if (e.key !== "Enter") return;
             fn();
         };
