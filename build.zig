@@ -18,8 +18,13 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
-    exe.linkLibrary(compileBearssl(b, target, optimize));
-    exe.addIncludePath(.{ .path = "BearSSL/inc" });
+    if (b.systemIntegrationOption("bearssl", .{})) {
+        exe.linkSystemLibrary("bearssl");
+        exe.linkLibC();
+    } else {
+        exe.linkLibrary(compileBearssl(b, target, optimize));
+        exe.addIncludePath(.{ .path = "BearSSL/inc" });
+    }
     exe.root_module.addOptions("options", options);
     exe.root_module.addImport("clap", b.dependency("clap", .{}).module("clap"));
 
