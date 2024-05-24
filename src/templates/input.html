@@ -10,10 +10,10 @@
         <p>your browser doesnt support javascript. you will need to manually put your input into the url</p>
         <p>example: http://example.com/foo/bar  -&gt;  http://example.com/foo/bar?your_input_here</p>
     </noscript>
-    <span>
+    <div id="d">
         <input type="text" id="t">
         <button id="b">submit</button>
-    </span>
+    </div>
     <script>
         function fn() {
             document.location.search = document.getElementById("t").value;

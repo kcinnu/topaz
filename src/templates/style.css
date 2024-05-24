@@ -1,12 +1,11 @@
 html {
-    /* background-color: black;
-    color: white; */
     font-family: system-ui, sans-serif;
     line-height: 1.5;
 }
 body {
     max-width: 50em;
     margin-inline: auto;
+    padding-inline: 10px;
     margin-bottom: 10em;
 }
 pre {
@@ -16,9 +15,6 @@ pre {
     padding: 0.5em;
     line-height: 1.3;
     overflow: auto;
-}
-div {
-    display: flex;
 }
 h1 {
     text-align: center;
@@ -30,6 +26,32 @@ h1,h2,h3 {
 p {
     text-align: justify;
 }
+
+#d {
+    display: flex;
+    flex-wrap: wrap;
+    column-gap: 2%;
+    row-gap: 5px;
+}
+#t {
+    flex: 9;
+    width: 100%;
+    min-width: 3em;
+    box-sizing: border-box;
+}
+#b {
+    flex: 1;
+}
+@media (max-width: 200px) {
+    #d {
+        flex-direction: column;
+    }
+}
+
+.error {
+    border: 1px solid #F00;
+}
+
 @media (prefers-color-scheme: dark) {
     html {
         background-color: #000;
@@ -44,7 +66,4 @@ p {
     pre {
         background: linear-gradient(155deg,#016,#238);
     }
-}
-.error {
-    border: 1px solid #F00;
 }
