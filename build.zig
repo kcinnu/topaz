@@ -13,7 +13,7 @@ pub fn build(b: *std.Build) void {
 
     const exe = b.addExecutable(.{
         .name = "topaz",
-        .root_source_file = .{ .path = "src/main.zig" },
+        .root_source_file = b.path("src/main.zig"),
         .target = target,
         .optimize = optimize,
     });
@@ -23,7 +23,7 @@ pub fn build(b: *std.Build) void {
         exe.linkLibC();
     } else {
         exe.linkLibrary(compileBearssl(b, target, optimize));
-        exe.addIncludePath(.{ .path = "BearSSL/inc" });
+        exe.addIncludePath(b.path("BearSSL/inc"));
     }
     exe.root_module.addOptions("options", options);
     exe.root_module.addImport("clap", b.dependency("clap", .{}).module("clap"));
@@ -57,9 +57,9 @@ fn compileBearssl(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std
         .optimize = optimize,
         .link_libc = true,
     });
-    bearssl.addCSourceFiles(.{ .files = &bearssl_sources, .root = .{ .path = "BearSSL/" } });
-    bearssl.addIncludePath(.{ .path = "BearSSL/inc" });
-    bearssl.addIncludePath(.{ .path = "BearSSL/src" });
+    bearssl.addCSourceFiles(.{ .files = &bearssl_sources, .root = b.path("BearSSL/") });
+    bearssl.addIncludePath(b.path("BearSSL/inc"));
+    bearssl.addIncludePath(b.path("BearSSL/src"));
     bearssl.defineCMacro("BR_LE_UNALIGNED", "0");
 
     return bearssl;
